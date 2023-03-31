@@ -21,13 +21,49 @@
         limitations under the License.
     "/>
     <script src="json2.js"></script>
+    <style>
+        .color-button {
+          font-family: Arial, sans-serif;
+          font-size: 18px;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin: 5px;
+          outline: none;
+          transition: transform 0.2s ease;
+        }
+      
+        .color-button:hover {
+          transform: scale(1.1);
+        }
+        
+        #color-buttons-container {
+            position: fixed;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 0 0 5px 5px;
+          }
+          
+      </style>
+      
+
   </head> 
   <body bgcolor="white" height="100%" width="100%"> 
     <div id="debug"></div>
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
-
+    <div id="color-buttons-container">
+        <button id="red" class="color-button" style="background-color: red; color: white;">Red</button>
+        <button id="black" class="color-button" style="background-color: black; color: white;">Black</button>
+        <button id="yellow" class="color-button" style="background-color: yellow;">Yellow</button>
+    </div>
     <script>
-      // Fix me
+
+
+loadImage();
 var canvas = document.getElementById('c');
 var host = window.location.host;
 var context = canvas.getContext("2d");
@@ -42,20 +78,42 @@ function debug(str) {
 }
 debug("Test");
 
+var drawingColor = "red"; 
+document.getElementById("red").addEventListener("click", function () {
+    drawingColor = "red";
+});
+document.getElementById("black").addEventListener("click", function () {
+    drawingColor = "black";
+});
+document.getElementById("yellow").addEventListener("click", function () {
+    drawingColor = "yellow";
+});
+
 world = {};
 
 //XXX: TODO Make this prettier!
+var bufferCanvas = document.createElement("canvas");
+var bufferContext = bufferCanvas.getContext("2d");
+bufferCanvas.width = W;
+bufferCanvas.height = H;
+
+function loadImage() {
+  var image = new Image();
+  image.src = 'img.jpg';
+  image.onload = function() {
+    bufferContext.drawImage(image, 0, 0, W, H);
+  };
+}
+
+  
 function drawCircle(context,entity) {
     with(context) {
         beginPath();                
-        lineWidth = 3;
         var x = entity["x"];
         var y = entity["y"];
-        //moveTo(x,y);
         fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        fill();                                
     }
 }
 
@@ -70,12 +128,7 @@ function prepEntity(entity) {
 }
 
 function clearFrame() {
-    with(context) {
-	moveTo(0,0);
-	fillStyle = "#000";
-	fillRect(0,0,W,H);
-    }
-
+    context.drawImage(bufferCanvas, 0, 0, W, H);
 }
 
 // This actually draws the frame
@@ -123,8 +176,11 @@ function getPosition(e) {
 
 function addEntity(entity, data) {
     world[entity] = data;
-    drawNextFrame(); // (but should we?)
+    //drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    var send = {}
+    send[entity] = data;
+    socket.send(JSON.stringify(send));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -231,15 +287,15 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour': drawingColor, 'radius':10});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':drawingColor, 'radius':10});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':drawingColor,
                           'radius':10});
 });
 
@@ -261,7 +317,13 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here? 
+            var data = JSON.parse(msg.data);
+            for (var entity in data) {
+                world[entity] = data[entity];
+            }
+            drawNextFrame();
+
         } catch (e) {
             alert("socket on message: " + e);
         }

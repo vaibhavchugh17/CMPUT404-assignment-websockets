@@ -17,8 +17,30 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+
+References
+========================
+
+## Websocket Code
+https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+
+## Background Image on Canvas
+https://stackoverflow.com/questions/14757659/loading-an-image-onto-a-canvas-with-javascript
+
+https://stackoverflow.com/questions/8562414/canvas-update-with-drawimage-from-buffer-dont-apply-actions-with-drawimage
+
+## Bacgkround Image Source
+https://www.cool2bkids.com/wp-content/uploads/2021/07/Printable-Sports-Car-Coloring-Pages.pdf
+
+## CSS Buttons
+https://www.w3schools.com/css/css3_buttons.asp
+
+## Canvas
+https://www.w3schools.com/html/html5_canvas.asp
+
 Contributors / Licensing
 ========================
+Vaibhav Chugh
 
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
